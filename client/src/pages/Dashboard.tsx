@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-    Users,
     FileText,
-    BarChart3,
     Search,
-    Bell,
     Plus,
     Activity,
     MessageSquareQuote,
