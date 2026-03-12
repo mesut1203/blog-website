@@ -63,6 +63,20 @@ export default function Dashboard() {
     const [quoteForm, setQuoteForm] = useState<QuoteInput>({ content: '' });
     const [isSaving, setIsSaving] = useState(false);
 
+    const currentMainCategoryId = useMemo(() => {
+        if (!blogForm.category_id) return '';
+        const cat = categories.find(c => c.id === blogForm.category_id);
+        if (cat && cat.parent_id) {
+            return cat.parent_id;
+        }
+        return blogForm.category_id;
+    }, [blogForm.category_id, categories]);
+
+    const currentSubCategories = useMemo(() => {
+        if (!currentMainCategoryId) return [];
+        return categories.filter(c => c.parent_id === currentMainCategoryId);
+    }, [currentMainCategoryId, categories]);
+
     useEffect(() => {
         fetchData();
     }, []);
@@ -504,19 +518,40 @@ export default function Dashboard() {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-emerald-900 ml-1">Category</label>
-                                    <select
-                                        value={blogForm.category_id || ''}
-                                        onChange={(e) => setBlogForm({ ...blogForm, category_id: e.target.value })}
-                                        className="w-full bg-emerald-50/30 border border-emerald-100 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-emerald-900 transition-all font-medium appearance-none"
-                                        required
-                                    >
-                                        <option value="" disabled>Select a category...</option>
-                                        {categories.map(cat => (
-                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                        ))}
-                                    </select>
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-emerald-900 ml-1">Category</label>
+                                        <select
+                                            value={currentMainCategoryId || ''}
+                                            onChange={(e) => {
+                                                const newMainCatId = e.target.value;
+                                                setBlogForm({ ...blogForm, category_id: newMainCatId });
+                                            }}
+                                            className="w-full bg-emerald-50/30 border border-emerald-100 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-emerald-900 transition-all font-medium appearance-none"
+                                            required
+                                        >
+                                            <option value="" disabled>Select a category...</option>
+                                            {categories.filter(c => !c.parent_id).map(cat => (
+                                                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    {currentSubCategories.length > 0 && (
+                                        <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                                            <label className="text-sm font-semibold text-emerald-900 ml-1">Subcategory</label>
+                                            <select
+                                                value={blogForm.category_id === currentMainCategoryId ? '' : (blogForm.category_id || '')}
+                                                onChange={(e) => setBlogForm({ ...blogForm, category_id: e.target.value })}
+                                                className="w-full bg-emerald-50/30 border border-emerald-100 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-emerald-900 transition-all font-medium appearance-none"
+                                                required
+                                            >
+                                                <option value="" disabled>Select specific category...</option>
+                                                {currentSubCategories.map(cat => (
+                                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="space-y-2">
