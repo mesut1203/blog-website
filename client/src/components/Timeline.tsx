@@ -1,4 +1,16 @@
 import { BookOpen, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+const getRouteForTitle = (title: string) => {
+    const t = title.toLowerCase();
+    if (t === 'science') return '/science';
+    if (t === 'buddhism & stoicism') return '/buddhism-stoicism';
+    if (t === 'psychology & neuroscience') return '/psychology';
+    if (t === 'fun & books') return '/fun-books';
+    if (t === 'languages') return '/languages';
+    if (t === 'self') return '/self';
+    return '#';
+};
 
 const timelineData = [
     {
@@ -26,7 +38,7 @@ const timelineData = [
         description: 'Turning light inputs into rich user experiences. A deep dive into creative coding and generative art on the web.',
         category: 'Creative Tech',
         readTime: '12 min read',
-        image: 'https://unsplash.com/photos/a-row-of-books-on-a-shelf-in-a-library-zm4CcBeBbp8'
+        image: 'https://images.unsplash.com/photo-1638443436690-db587cc66f12?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
     },
     {
         id: 4,
@@ -105,10 +117,13 @@ const Timeline = () => {
 
                                     <div className="flex items-center justify-between mt-auto">
                                         <span className="text-sm font-medium text-emerald-600 bg-emerald-50 py-1.5 px-4 rounded-full">{node.date}</span>
-                                        <button className="flex items-center gap-2 text-emerald-600 font-semibold hover:text-emerald-800 transition-colors group/btn">
+                                        <Link
+                                            to={getRouteForTitle(node.title)}
+                                            className="flex items-center gap-2 text-emerald-600 font-semibold hover:text-emerald-800 transition-colors group/btn"
+                                        >
                                             Read
                                             <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                                        </button>
+                                        </Link>
                                     </div>
                                 </div>
                             </div>
