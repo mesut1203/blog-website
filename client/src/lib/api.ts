@@ -1,5 +1,5 @@
 import { supabase } from '../supabaseClient';
-import type { Blog, BlogInput, Category, Quote, QuoteInput } from '../types';
+import type { Blog, BlogInput, BlogWithCategory, Category, Quote, QuoteInput } from '../types';
 
 // ==========================================
 // CATEGORIES
@@ -27,6 +27,16 @@ export const getBlogs = async (): Promise<Blog[]> => {
     return data || [];
 };
 
+export const getBlogsWithCategories = async (): Promise<BlogWithCategory[]> => {
+    const { data, error } = await supabase
+        .from('blogs')
+        .select('*, categories(*)')
+        .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data as any; // Type assertion needed because supabase join types are complex
+};
+
 export const getBlog = async (id: string): Promise<Blog | null> => {
     const { data, error } = await supabase
         .from('blogs')
@@ -36,6 +46,20 @@ export const getBlog = async (id: string): Promise<Blog | null> => {
 
     if (error) throw error;
     return data;
+};
+
+export const getBlogWithCategory = async (id: string): Promise<BlogWithCategory | null> => {
+    const { data, error } = await supabase
+        .from('blogs')
+        .select('*, categories(*)')
+        .eq('id', id)
+        .single();
+
+    if (error) {
+        if (error.code === 'PGRST116') return null; // PostgREST code for "not found"
+        throw error;
+    }
+    return data as any;
 };
 
 export const createBlog = async (blog: BlogInput): Promise<Blog> => {
