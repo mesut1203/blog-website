@@ -10,6 +10,9 @@ import Languages from './pages/Languages';
 import Self from './pages/Self';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Blog from './pages/Blog';
+import BlogDetail from './pages/BlogDetail';
+import Contact from './pages/Contact';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import ScrollToTop from './components/ScrollToTop';
@@ -31,6 +34,9 @@ function App() {
               <Route path="/fun-books" element={<FunBooks />} />
               <Route path="/languages" element={<Languages />} />
               <Route path="/self" element={<Self />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:id" element={<BlogDetail />} />
+              <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login />} />
 
               {/* Protected Routes */}
