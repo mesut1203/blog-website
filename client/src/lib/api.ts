@@ -37,6 +37,46 @@ export const getBlogsWithCategories = async (): Promise<BlogWithCategory[]> => {
     return data as any; // Type assertion needed because supabase join types are complex
 };
 
+export const getPaginatedBlogsWithCategories = async ({
+    page = 1,
+    limit = 6,
+    search = '',
+    categoryId = 'All'
+}: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    categoryId?: string;
+} = {}): Promise<{ data: BlogWithCategory[], totalCount: number }> => {
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    let query = supabase
+        .from('blogs')
+        .select('*, categories!inner(*)', { count: 'exact' });
+
+    if (search) {
+        query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%`);
+    }
+
+    if (categoryId !== 'All') {
+        // We match by category name or ID depending on how the frontend sends it.
+        // Assuming the select passes category name for "selectedCategory" right now. Let's filter by name because the current frontend passes Name.
+        query = query.eq('categories.name', categoryId);
+    }
+
+    const { data, error, count } = await query
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+    if (error) throw error;
+
+    return {
+        data: data as any,
+        totalCount: count || 0
+    };
+};
+
 export const getBlog = async (id: string): Promise<Blog | null> => {
     const { data, error } = await supabase
         .from('blogs')
