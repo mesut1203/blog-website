@@ -13,6 +13,10 @@ export interface Blog {
     created_at: string;
 }
 
+export interface BlogWithCategory extends Blog {
+    categories: Category | null;
+}
+
 export type BlogInput = Omit<Blog, 'id' | 'created_at'>;
 
 export interface Quote {

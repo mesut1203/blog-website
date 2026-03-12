@@ -21,8 +21,8 @@ const Header = () => {
       </Link>
       <nav className="hidden md:flex gap-8 items-center">
         <Link to="/" className="text-emerald-800 font-medium hover:text-emerald-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-emerald-600 after:transition-all after:duration-300 pb-1">Home</Link>
-        <a href="#blog" className="text-emerald-800 font-medium hover:text-emerald-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-emerald-600 after:transition-all after:duration-300 pb-1">Blog</a>
-        <a href="#contact" className="text-emerald-800 font-medium hover:text-emerald-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-emerald-600 after:transition-all after:duration-300 pb-1">Contact</a>
+        <Link to="/blog" className="text-emerald-800 font-medium hover:text-emerald-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-emerald-600 after:transition-all after:duration-300 pb-1">Blog</Link>
+        <Link to="/contact" className="text-emerald-800 font-medium hover:text-emerald-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-emerald-600 after:transition-all after:duration-300 pb-1">Contact</Link>
 
         {session ? (
           <>
