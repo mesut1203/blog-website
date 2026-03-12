@@ -46,7 +46,6 @@ export default function Login() {
                             <Leaf className="w-8 h-8" />
                         </div>
                         <h2 className="text-3xl font-bold text-emerald-950 tracking-tight mb-2">Welcome Back</h2>
-                        <p className="text-emerald-600/80">Enter your credentials to access your dashboard</p>
                     </div>
 
                     <form onSubmit={handleLogin} className="space-y-6">
@@ -78,7 +77,7 @@ export default function Login() {
                         <div className="space-y-2">
                             <div className="flex justify-between items-center ml-1">
                                 <label className="text-sm font-semibold text-emerald-900">Password</label>
-                                <a href="#" className="text-xs font-medium text-emerald-600 hover:text-emerald-500 transition-colors">Forgot password?</a>
+                                
                             </div>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-emerald-400">
@@ -112,12 +111,7 @@ export default function Login() {
                         </button>
                     </form>
 
-                    <p className="mt-8 text-center text-sm font-medium text-emerald-600/80">
-                        Don't have an account?{' '}
-                        <Link to="/register" className="text-emerald-600 font-bold hover:text-emerald-500 transition-colors">
-                            Sign up
-                        </Link>
-                    </p>
+                    
                 </div>
             </div>
         </div>

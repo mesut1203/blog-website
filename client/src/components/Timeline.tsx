@@ -1,4 +1,4 @@
-import { BookOpen, ArrowRight } from 'lucide-react';
+import { BookOpen, ArrowRight, Microscope, HandHeart, Brain, Globe, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const getRouteForTitle = (title: string) => {
@@ -15,56 +15,44 @@ const getRouteForTitle = (title: string) => {
 const timelineData = [
     {
         id: 1,
-        date: 'March 10, 2026',
         title: 'Science',
-        description: 'Exploring how deep foundations in architecture lead to systems that weather any storm. A look into modern resilient design patterns.',
-        category: 'Design Systems',
-        readTime: '5 min read',
-        image: 'https://images.unsplash.com/photo-1485368510545-b1f4bcd02d0d'
+        description: 'Exploring the principles and discoveries that shape our universe, from the smallest particles to the vastness of space',
+        image: 'https://images.unsplash.com/photo-1485368510545-b1f4bcd02d0d',
+        Icon: Microscope
     },
     {
         id: 2,
-        date: 'February 24, 2026',
         title: 'Buddhism & Stoicism',
-        description: 'When UI components overshadow each other. Understanding z-index structures and managing complex overlaps in modern web applications.',
-        category: 'Frontend',
-        readTime: '8 min read',
-        image: 'https://images.unsplash.com/photo-1550141627-edb66a32a2eb?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+        description: 'Lessons from Buddhism and Stoicism on mastering the mind, embracing impermanence, and living with purpose',
+        image: 'https://images.unsplash.com/photo-1550141627-edb66a32a2eb?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        Icon: HandHeart
     },
     {
         id: 3,
-        date: 'February 15, 2026',
         title: 'Psychology & Neuroscience',
-        description: 'Turning light inputs into rich user experiences. A deep dive into creative coding and generative art on the web.',
-        category: 'Creative Tech',
-        readTime: '12 min read',
-        image: 'https://images.unsplash.com/photo-1638443436690-db587cc66f12?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+        description: 'Understanding the human mind, behavior, and brain through psychology, neuroscience, and scientific insight',
+        image: 'https://images.unsplash.com/photo-1638443436690-db587cc66f12?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        Icon: Brain
     },
     {
         id: 4,
-        date: 'January 02, 2026',
         title: 'Fun & Books',
-        description: 'Sometimes you have to cut back to grow. Lessons learned from breaking down a massive legacy application into micro-frontends.',
-        category: 'Architecture',
-        readTime: '15 min read',
-        image: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Ym9va3N8ZW58MHx8MHx8fDA%3D'
+        description: 'A collection of ideas, stories, and book discoveries that inspire curiosity, learning, and imagination',
+        image: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Ym9va3N8ZW58MHx8MHx8fDA%3D',
+        Icon: BookOpen
     },
     {
         id: 5,
-        date: 'January 3, 2026',
         title: 'Languages',
-        description: 'Sometimes you have to cut back to grow. Lessons learned from breaking down a massive legacy application into micro-frontends.',
-        category: 'Architecture',
-        readTime: '15 min read',
-        image: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=2873&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+        description: 'Words, cultures, and the journey of learning new languages',
+        image: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=2873&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        Icon: Globe
     }, {
         id: 6,
-        date: 'January 02, 2026',
         title: 'Self',
-        description: 'Sometimes you have to cut back to grow. Lessons learned from breaking down a massive legacy application into micro-frontends.',
-        category: 'Architecture',
-        readTime: '15 min read',
-        image: 'https://plus.unsplash.com/premium_photo-1661963810374-85a874671aa8?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8c2VsZnxlbnwwfHwwfHx8MA%3D%3D'
+        description: 'Reflections on personal growth, self-discovery, and the ongoing journey of becoming a better human.',
+        image: 'https://plus.unsplash.com/premium_photo-1661963810374-85a874671aa8?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8c2VsZnxlbnwwfHwwfHx8MA%3D%3D',
+        Icon: User
     }
 ];
 
@@ -95,7 +83,7 @@ const Timeline = () => {
 
                             {/* Center Node dot */}
                             <div className="hidden md:flex relative w-12 h-12 rounded-full bg-emerald-50 border-4 border-emerald-500 items-center justify-center z-20 shadow-[0_0_0_8px_rgba(16,185,129,0.1)] group-hover:bg-emerald-500 transition-colors duration-300">
-                                <BookOpen className="w-5 h-5 text-emerald-500 group-hover:text-white transition-colors duration-300" />
+                                <node.Icon className="w-5 h-5 text-emerald-500 group-hover:text-white transition-colors duration-300" />
                             </div>
 
                             {/* Mobile Node Dot + Line Connector */}
@@ -107,16 +95,13 @@ const Timeline = () => {
                                     {/* Connectors for desktop */}
                                     <div className={`hidden md:block absolute top-1/2 w-8 h-0.5 bg-emerald-200 -translate-y-1/2 ${isEven ? '-left-8' : '-right-8'}`}></div>
 
-                                    <div className="flex justify-between items-center mb-4">
-                                        <span className="text-sm font-semibold text-emerald-500 tracking-wider uppercase">{node.category}</span>
-                                        <span className="text-sm text-emerald-400 font-medium">{node.readTime}</span>
-                                    </div>
+                                    
 
                                     <h3 className="text-2xl font-bold text-emerald-950 mb-3">{node.title}</h3>
                                     <p className="text-emerald-700 leading-relaxed mb-6">{node.description}</p>
 
-                                    <div className="flex items-center justify-between mt-auto">
-                                        <span className="text-sm font-medium text-emerald-600 bg-emerald-50 py-1.5 px-4 rounded-full">{node.date}</span>
+                                    <div className="flex items-center justify-end mt-auto">
+                                        
                                         <Link
                                             to={getRouteForTitle(node.title)}
                                             className="flex items-center gap-2 text-emerald-600 font-semibold hover:text-emerald-800 transition-colors group/btn"
