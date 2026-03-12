@@ -134,7 +134,7 @@ export default function Blog() {
 
                         {isFilterOpen && (
                             <div className="absolute top-full mt-2 w-full bg-white rounded-2xl shadow-xl shadow-emerald-900/10 border border-emerald-100 overflow-visible z-30">
-                                <div className="max-h-60 overflow-y-visible py-2">
+                                <div className="py-2">
                                     <button
                                         onClick={() => {
                                             setSelectedCategory('All');
