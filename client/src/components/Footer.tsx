@@ -57,7 +57,7 @@ const Footer = () => (
             <div className="pt-8 border-t border-emerald-800/60 flex flex-col md:flex-row justify-between items-center gap-4 text-emerald-400/60 text-sm font-medium">
                 <p>© {new Date().getFullYear()} SoulTrees. All rights reserved.</p>
                 <p className="flex items-center gap-1.5">
-                    Made with <Heart className="w-4 h-4 text-rose-500 fill-rose-500 animate-pulse" /> by SoulTrees Team
+                    Made by Decode Vu
                 </p>
             </div>
         </div>
