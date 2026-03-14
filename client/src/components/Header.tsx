@@ -1,10 +1,12 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Leaf as LeafIcon, LogOut as LogOutIcon } from 'lucide-react';
+import { Leaf as LeafIcon, LogOut as LogOutIcon, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Header = () => {
   const { session, signOut } = useAuth();
   const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     await signOut();
@@ -42,12 +44,77 @@ const Header = () => {
           </Link>
         )}
       </nav>
-        <button className="md:hidden text-emerald-950">
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
-          </svg>
+        <button 
+          className="md:hidden text-emerald-950 p-2"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          {isMobileMenuOpen ? (
+            <X className="w-7 h-7" />
+          ) : (
+            <Menu className="w-7 h-7" />
+          )}
         </button>
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-emerald-50 shadow-lg py-4 px-6 flex flex-col gap-4 animate-in slide-in-from-top-2 duration-200">
+          <Link 
+            to="/" 
+            className="text-emerald-900 font-semibold text-lg py-2 hover:text-emerald-600 transition-colors"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            Home
+          </Link>
+          <Link 
+            to="/blog" 
+            className="text-emerald-900 font-semibold text-lg py-2 hover:text-emerald-600 transition-colors"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            Blog
+          </Link>
+          <Link 
+            to="/contact" 
+            className="text-emerald-900 font-semibold text-lg py-2 hover:text-emerald-600 transition-colors"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            Contact
+          </Link>
+          
+          <div className="h-px bg-emerald-100 my-2 w-full"></div>
+
+          {session ? (
+            <>
+              <Link 
+                to="/dashboard" 
+                className="text-emerald-900 font-semibold text-lg py-2 hover:text-emerald-600 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-2 py-3 px-4 justify-center text-sm font-bold text-rose-600 bg-rose-50 rounded-xl hover:bg-rose-100 transition-colors shadow-sm mt-2"
+              >
+                <LogOutIcon className="w-5 h-5" />
+                Logout
+              </button>
+            </>
+          ) : (
+            <Link 
+              to="/login" 
+              className="py-3 px-4 text-center text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-500 transition-all shadow-md mt-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Login
+            </Link>
+          )}
+        </div>
+      )}
     </header>
   );
 };
