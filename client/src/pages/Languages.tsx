@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getBlogs, getCategories } from '../lib/api';
-import type { Blog } from '../types';
-import { ArrowRight, Clock } from 'lucide-react';
+import type { Blog, Category } from '../types';
+import { ArrowRight, Clock, Globe, MessageSquare, Languages as LanguagesIcon, Terminal, Book, Search, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const LanguagesHero = () => (
@@ -10,9 +10,9 @@ const LanguagesHero = () => (
         <div className="absolute inset-0 z-0 bg-black/50"></div>
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center text-white">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold leading-tight tracking-tight mb-6">
-                Bridges of <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-200 to-orange-300">Communication.</span>
+                Bridges of <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-200 to-emerald-300">Communication.</span>
             </h1>
-            <p className="text-lg md:text-2xl text-rose-50/80 max-w-3xl mx-auto font-medium leading-relaxed">
+            <p className="text-lg md:text-2xl text-emerald-50/80 max-w-3xl mx-auto font-medium leading-relaxed">
                 Exploring linguistics, natural languages, and the code that connects us across cultures.
             </p>
         </div>
@@ -90,61 +90,155 @@ const PostCard = ({ post, categoryName }: { post: Blog, categoryName: string }) 
 };
 
 export default function Languages() {
-    const [posts, setPosts] = useState<Blog[]>([]);
+    const [languagePosts, setLanguagePosts] = useState<Blog[]>([]);
+    const [subCategories, setSubCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
+    const [activeFilterId, setActiveFilterId] = useState<string>('All');
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchLanguageData = async () => {
             try {
-                const categories = await getCategories();
-                const blogs = await getBlogs();
+                const [categories, blogs] = await Promise.all([getCategories(), getBlogs()]);
 
-                const targetCategory = categories.find(c => c.name.toLowerCase() === 'languages');
-                let filteredBlogs: Blog[] = [];
+                const mainCategory = categories.find(c => c.name.toLowerCase() === 'languages');
                 
-                if (targetCategory) {
-                     filteredBlogs = blogs.filter(b => b.category_id === targetCategory.id);
-                } else if(blogs.length > 0) {
-                     filteredBlogs = blogs;
-                }
+                if (mainCategory) {
+                    const children = categories.filter(c => c.parent_id === mainCategory.id);
+                    setSubCategories(children);
 
-                setPosts(filteredBlogs);
+                    const languageRelatedIds = [mainCategory.id, ...children.map(c => c.id)];
+                    const filteredBlogs = blogs.filter(b => b.category_id && languageRelatedIds.includes(b.category_id));
+                    setLanguagePosts(filteredBlogs);
+                } else if (blogs.length > 0) {
+                    setLanguagePosts(blogs);
+                }
             } catch (error) {
-                console.error("Failed to fetch posts:", error);
+                console.error("Failed to fetch languages data:", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchData();
+        fetchLanguageData();
     }, []);
 
-    const featuredPost = posts.length > 0 ? posts[0] : null;
-    const remainingPosts = posts.length > 1 ? posts.slice(1) : [];
+    const filteredPosts = useMemo(() => {
+        let result = languagePosts;
+        
+        if (activeFilterId !== 'All') {
+            result = result.filter(post => post.category_id === activeFilterId);
+        }
+        
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            result = result.filter(post => 
+                post.title.toLowerCase().includes(query) || 
+                post.content.toLowerCase().includes(query)
+            );
+        }
+        
+        return result;
+    }, [activeFilterId, searchQuery, languagePosts]);
+
+    const getIconForCategory = (name: string) => {
+        const n = name.toLowerCase();
+        if (n.includes('viet') || n.includes('eng') || n.includes('jp') || n.includes('fr')) return <LanguagesIcon className="w-5 h-5" />;
+        if (n.includes('code') || n.includes('prog') || n.includes('tech')) return <Terminal className="w-5 h-5" />;
+        if (n.includes('literat') || n.includes('book')) return <Book className="w-5 h-5" />;
+        return <MessageSquare className="w-5 h-5" />;
+    };
+
+    const featuredPost = filteredPosts.length > 0 ? filteredPosts[0] : null;
+    const remainingPosts = filteredPosts.length > 1 ? filteredPosts.slice(1) : [];
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className="flex flex-col min-h-screen bg-emerald-50/20">
             <main className="flex-1 w-full flex flex-col items-center">
                 <LanguagesHero />
 
-                <section className="w-full max-w-7xl mx-auto px-6 py-20">
+                <section className="w-full max-w-7xl mx-auto px-6 py-12">
+                    
+                    {/* Search & Filter Bar */}
+                    <div className="flex flex-col items-center gap-8 mb-16">
+                        
+                        {/* Search Bar */}
+                        <div className="relative w-full max-w-2xl group">
+                            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-emerald-300 group-focus-within:text-emerald-500 transition-colors">
+                                <Search className="w-6 h-6" />
+                            </div>
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search for vocabulary, grammar, or cultural notes..."
+                                className="w-full bg-white border-2 border-emerald-100 rounded-3xl py-4 pl-14 pr-6 focus:outline-none focus:border-emerald-300 focus:ring-4 focus:ring-emerald-200/20 text-gray-800 placeholder-emerald-200 text-lg transition-all shadow-sm"
+                            />
+                        </div>
+
+                        {/* Filter Tabs */}
+                        <div className="flex flex-wrap justify-center gap-4">
+                            <button
+                                onClick={() => setActiveFilterId('All')}
+                                className={`flex items-center gap-2.5 px-6 py-3.5 rounded-2xl font-bold transition-all duration-300 shadow-sm border ${
+                                    activeFilterId === 'All'
+                                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-200 -translate-y-1'
+                                        : 'bg-white text-emerald-800 border-emerald-100 hover:border-emerald-300 hover:bg-emerald-50'
+                                }`}
+                            >
+                                <Sparkles className={`w-5 h-5 ${activeFilterId === 'All' ? 'text-emerald-200' : 'text-emerald-500'}`} />
+                                <span>All Notes</span>
+                            </button>
+
+                            {subCategories.map((cat) => (
+                                <button
+                                    key={cat.id}
+                                    onClick={() => setActiveFilterId(cat.id)}
+                                    className={`flex items-center gap-2.5 px-6 py-3.5 rounded-2xl font-bold transition-all duration-300 shadow-sm border ${
+                                        activeFilterId === cat.id
+                                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-200 -translate-y-1'
+                                            : 'bg-white text-emerald-800 border-emerald-100 hover:border-emerald-300 hover:bg-emerald-50'
+                                    }`}
+                                >
+                                    <div className={activeFilterId === cat.id ? 'text-emerald-200' : 'text-emerald-500'}>
+                                        {getIconForCategory(cat.name)}
+                                    </div>
+                                    <span>{cat.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     {loading ? (
                         <div className="w-full py-32 flex justify-center items-center">
                             <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
                         </div>
-                    ) : posts.length === 0 ? (
-                        <div className="text-center py-32 bg-white rounded-3xl border border-emerald-100 mx-6 shadow-sm">
-                            <h3 className="text-2xl font-bold text-emerald-900 mb-2">No notes recorded yet.</h3>
-                            <p className="text-emerald-600">The dictionary is quiet today. Return soon for new vocabulary.</p>
+                    ) : filteredPosts.length === 0 ? (
+                        <div className="text-center py-32 bg-white rounded-[2.5rem] border border-emerald-100 mx-auto max-w-3xl shadow-sm px-10">
+                            <div className="bg-emerald-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8">
+                                <Globe className="w-10 h-10 text-emerald-400" />
+                            </div>
+                            <h3 className="text-3xl font-extrabold text-emerald-950 mb-4">The dictionary is silent.</h3>
+                            <p className="text-emerald-600 text-lg mb-10 leading-relaxed">We couldn't find any language notes matching your criteria. Try adjusting your search or filter.</p>
+                            <button 
+                                onClick={() => { setActiveFilterId('All'); setSearchQuery(''); }}
+                                className="inline-flex items-center gap-2 text-emerald-700 font-bold hover:text-emerald-900 transition-colors bg-emerald-50 px-8 py-3 rounded-xl hover:bg-emerald-100"
+                            >
+                                <Sparkles className="w-5 h-5" />
+                                Reset Selection
+                            </button>
                         </div>
                     ) : (
                         <>
                             {featuredPost && <FeaturedPost post={featuredPost} categoryName="Languages" />}
 
                             {remainingPosts.length > 0 && (
-                                <div>
-                                    <h2 className="text-xl font-bold text-emerald-950 mb-8 border-b-2 border-emerald-100 pb-2 inline-block">Latest Translations</h2>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                <div className="mt-20">
+                                    <div className="flex items-center gap-6 mb-12">
+                                        <h2 className="text-3xl font-black text-emerald-950 tracking-tight">Latest Translations</h2>
+                                        <div className="h-1 flex-1 bg-gradient-to-r from-emerald-100 to-transparent rounded-full hidden sm:block"></div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                                         {remainingPosts.map(post => (
                                             <PostCard key={post.id} post={post} categoryName="Languages" />
                                         ))}

@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getBlogs, getCategories } from '../lib/api';
-import type { Blog } from '../types';
-import { ArrowRight, Clock } from 'lucide-react';
+import type { Blog, Category } from '../types';
+import { ArrowRight, Clock, Microscope, Atom, FlaskConical, Stethoscope, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const ScienceHero = () => (
@@ -92,34 +92,29 @@ const SciencePostCard = ({ post, categoryName }: { post: Blog, categoryName: str
 
 export default function Science() {
     const [sciencePosts, setSciencePosts] = useState<Blog[]>([]);
+    const [subCategories, setSubCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
+    const [activeFilterId, setActiveFilterId] = useState<string>('All');
 
     useEffect(() => {
         const fetchScienceData = async () => {
             try {
-                // Fetch categories and blogs
-                const categories = await getCategories();
-                const blogs = await getBlogs();
+                const [categories, blogs] = await Promise.all([getCategories(), getBlogs()]);
 
-                // Find the ID for the 'Science' category
-                // For this mock implementation, we filter by category logic:
-                // If it's a real API: const scienceCategory = categories.find(c => c.name.toLowerCase() === 'science');
-                // Because we might not have 'Science' populated, we mock the filtering behavior 
-                // Alternatively, just grab the first few blogs to display layout if DB is empty
+                const mainCategory = categories.find(c => c.name.toLowerCase() === 'science');
                 
-                const scienceCategory = categories.find(c => c.name.toLowerCase() === 'science');
-                let filteredBlogs: Blog[] = [];
-                
-                if (scienceCategory) {
-                     filteredBlogs = blogs.filter(b => b.category_id === scienceCategory.id);
-                } else if(blogs.length > 0) {
-                     // Fallback if no specific 'Science' category is found in mock DB yet, just show anything available
-                     filteredBlogs = blogs;
+                if (mainCategory) {
+                    const children = categories.filter(c => c.parent_id === mainCategory.id);
+                    setSubCategories(children);
+
+                    const scienceRelatedIds = [mainCategory.id, ...children.map(c => c.id)];
+                    const scienceBlogs = blogs.filter(b => b.category_id && scienceRelatedIds.includes(b.category_id));
+                    setSciencePosts(scienceBlogs);
+                } else if (blogs.length > 0) {
+                    setSciencePosts(blogs);
                 }
-
-                setSciencePosts(filteredBlogs);
             } catch (error) {
-                console.error("Failed to fetch science posts:", error);
+                console.error("Failed to fetch science data:", error);
             } finally {
                 setLoading(false);
             }
@@ -128,32 +123,90 @@ export default function Science() {
         fetchScienceData();
     }, []);
 
-    const featuredPost = sciencePosts.length > 0 ? sciencePosts[0] : null;
-    const remainingPosts = sciencePosts.length > 1 ? sciencePosts.slice(1) : [];
+    const filteredPosts = useMemo(() => {
+        if (activeFilterId === 'All') return sciencePosts;
+        return sciencePosts.filter(post => post.category_id === activeFilterId);
+    }, [activeFilterId, sciencePosts]);
+
+    const getIconForCategory = (name: string) => {
+        const n = name.toLowerCase();
+        if (n.includes('math') || n.includes('physic')) return <Atom className="w-5 h-5" />;
+        if (n.includes('biolog') || n.includes('chemist')) return <FlaskConical className="w-5 h-5" />;
+        if (n.includes('medicin') || n.includes('health')) return <Stethoscope className="w-5 h-5" />;
+        return <Microscope className="w-5 h-5" />;
+    };
+
+    const featuredPost = filteredPosts.length > 0 ? filteredPosts[0] : null;
+    const remainingPosts = filteredPosts.length > 1 ? filteredPosts.slice(1) : [];
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className="flex flex-col min-h-screen bg-emerald-50/30">
             <main className="flex-1 w-full flex flex-col items-center">
                 <ScienceHero />
 
-                <section className="w-full max-w-7xl mx-auto px-6 py-20">
+                <section className="w-full max-w-7xl mx-auto px-6 py-12">
+                    {/* Dynamic Filter Bar */}
+                    <div className="flex flex-wrap justify-center gap-4 mb-16 px-4">
+                        <button
+                            onClick={() => setActiveFilterId('All')}
+                            className={`flex items-center gap-2.5 px-6 py-3.5 rounded-2xl font-bold transition-all duration-300 shadow-sm border ${
+                                activeFilterId === 'All'
+                                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-200 -translate-y-1'
+                                    : 'bg-white text-emerald-800 border-emerald-100 hover:border-emerald-300 hover:bg-emerald-50'
+                            }`}
+                        >
+                            <Sparkles className={`w-5 h-5 ${activeFilterId === 'All' ? 'text-teal-200' : 'text-emerald-500'}`} />
+                            <span>All Discoveries</span>
+                        </button>
+
+                        {subCategories.map((cat) => (
+                            <button
+                                key={cat.id}
+                                onClick={() => setActiveFilterId(cat.id)}
+                                className={`flex items-center gap-2.5 px-6 py-3.5 rounded-2xl font-bold transition-all duration-300 shadow-sm border ${
+                                    activeFilterId === cat.id
+                                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-200 -translate-y-1'
+                                        : 'bg-white text-emerald-800 border-emerald-100 hover:border-emerald-300 hover:bg-emerald-50'
+                                }`}
+                            >
+                                <div className={activeFilterId === cat.id ? 'text-teal-200' : 'text-emerald-500'}>
+                                    {getIconForCategory(cat.name)}
+                                </div>
+                                <span>{cat.name}</span>
+                            </button>
+                        ))}
+                    </div>
+
                     {loading ? (
                         <div className="w-full py-32 flex justify-center items-center">
                             <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
                         </div>
-                    ) : sciencePosts.length === 0 ? (
-                        <div className="text-center py-32 bg-white rounded-3xl border border-emerald-100 mx-6 shadow-sm">
-                            <h3 className="text-2xl font-bold text-emerald-900 mb-2">No observations recorded yet.</h3>
-                            <p className="text-emerald-600">The forest is quiet today. Return soon for new scientific insights.</p>
+                    ) : filteredPosts.length === 0 ? (
+                        <div className="text-center py-32 bg-white rounded-[2.5rem] border border-emerald-100 mx-auto max-w-3xl shadow-sm px-10">
+                            <div className="bg-emerald-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8">
+                                <Microscope className="w-10 h-10 text-emerald-400" />
+                            </div>
+                            <h3 className="text-3xl font-extrabold text-emerald-950 mb-4">No results in this field yet.</h3>
+                            <p className="text-emerald-600 text-lg mb-10 leading-relaxed">We're still gathering data for this specific area of exploration. Join our journey as we record new findings soon.</p>
+                            <button 
+                                onClick={() => setActiveFilterId('All')}
+                                className="inline-flex items-center gap-2 text-emerald-700 font-bold hover:text-emerald-900 transition-colors bg-emerald-50 px-8 py-3 rounded-xl hover:bg-emerald-100"
+                            >
+                                <Sparkles className="w-5 h-5" />
+                                Explore All Science
+                            </button>
                         </div>
                     ) : (
                         <>
                             {featuredPost && <ScienceFeaturedPost post={featuredPost} categoryName="Science" />}
 
                             {remainingPosts.length > 0 && (
-                                <div>
-                                    <h2 className="text-xl font-bold text-emerald-950 mb-8 border-b-2 border-emerald-100 pb-2 inline-block">Latest Field Notes</h2>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                <div className="mt-20">
+                                    <div className="flex items-center gap-6 mb-12">
+                                        <h2 className="text-3xl font-black text-emerald-950 tracking-tight">Latest Field Notes</h2>
+                                        <div className="h-1 flex-1 bg-gradient-to-r from-emerald-100 to-transparent rounded-full hidden sm:block"></div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                                         {remainingPosts.map(post => (
                                             <SciencePostCard key={post.id} post={post} categoryName="Science" />
                                         ))}
