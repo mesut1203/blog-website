@@ -47,11 +47,20 @@ export default function Blog() {
         async function loadBlogs() {
             setLoading(true);
             try {
+                let categoryNamesToFetch: string[] | string = selectedCategory;
+                if (selectedCategory !== 'All') {
+                    const baseCat = categories.find(c => c.name === selectedCategory);
+                    if (baseCat && !baseCat.parent_id) {
+                        const subcatNames = categories.filter(c => c.parent_id === baseCat.id).map(c => c.name);
+                        categoryNamesToFetch = [baseCat.name, ...subcatNames];
+                    }
+                }
+
                 const { data, totalCount } = await getPaginatedBlogsWithCategories({
                     page: currentPage,
                     limit,
                     search: debouncedSearchQuery,
-                    categoryId: selectedCategory
+                    categoryId: categoryNamesToFetch
                 });
                 setBlogs(data);
                 setTotalResults(totalCount);

@@ -1,12 +1,18 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Leaf as LeafIcon, LogOut as LogOutIcon, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Header = () => {
   const { session, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const isActive = (path: string) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path);
+  };
 
   const handleLogout = async () => {
     await signOut();
@@ -23,13 +29,13 @@ const Header = () => {
         <span className="font-bold text-2xl tracking-tight text-emerald-950">SoulTrees</span>
       </Link>
       <nav className="hidden md:flex gap-8 items-center">
-        <Link to="/" className="text-emerald-800 font-medium hover:text-emerald-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-emerald-600 after:transition-all after:duration-300 pb-1">Home</Link>
-        <Link to="/blog" className="text-emerald-800 font-medium hover:text-emerald-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-emerald-600 after:transition-all after:duration-300 pb-1">Blog</Link>
-        <Link to="/contact" className="text-emerald-800 font-medium hover:text-emerald-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-emerald-600 after:transition-all after:duration-300 pb-1">Contact</Link>
+        <Link to="/" className={`font-medium transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:transition-all after:duration-300 pb-1 ${isActive('/') ? 'text-emerald-600 after:w-full after:bg-emerald-600' : 'text-emerald-800 hover:text-emerald-600 after:w-0 hover:after:w-full after:bg-emerald-600'}`}>Home</Link>
+        <Link to="/blog" className={`font-medium transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:transition-all after:duration-300 pb-1 ${isActive('/blog') ? 'text-emerald-600 after:w-full after:bg-emerald-600' : 'text-emerald-800 hover:text-emerald-600 after:w-0 hover:after:w-full after:bg-emerald-600'}`}>Blog</Link>
+        <Link to="/contact" className={`font-medium transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:transition-all after:duration-300 pb-1 ${isActive('/contact') ? 'text-emerald-600 after:w-full after:bg-emerald-600' : 'text-emerald-800 hover:text-emerald-600 after:w-0 hover:after:w-full after:bg-emerald-600'}`}>Contact</Link>
 
         {session ? (
           <>
-            <Link to="/dashboard" className="text-emerald-800 font-medium hover:text-emerald-600 transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-emerald-600 after:transition-all after:duration-300 pb-1">Dashboard</Link>
+            <Link to="/dashboard" className={`font-medium transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:transition-all after:duration-300 pb-1 ${isActive('/dashboard') ? 'text-emerald-600 after:w-full after:bg-emerald-300' : 'text-emerald-800 hover:text-emerald-600 after:w-0 hover:after:w-full after:bg-emerald-600'}`}>Dashboard</Link>
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-rose-600 bg-rose-50 rounded-xl hover:bg-rose-100 transition-colors shadow-sm"
@@ -62,21 +68,21 @@ const Header = () => {
         <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-emerald-50 shadow-lg py-4 px-6 flex flex-col gap-4 animate-in slide-in-from-top-2 duration-200">
           <Link 
             to="/" 
-            className="text-emerald-900 font-semibold text-lg py-2 hover:text-emerald-600 transition-colors"
+            className={`font-semibold text-lg py-2 transition-colors ${isActive('/') ? 'text-emerald-600 pl-2 border-l-2 border-emerald-600 bg-emerald-50/50' : 'text-emerald-900 hover:text-emerald-600'}`}
             onClick={() => setIsMobileMenuOpen(false)}
           >
             Home
           </Link>
           <Link 
             to="/blog" 
-            className="text-emerald-900 font-semibold text-lg py-2 hover:text-emerald-600 transition-colors"
+            className={`font-semibold text-lg py-2 transition-colors ${isActive('/blog') ? 'text-emerald-600 pl-2 border-l-2 border-emerald-600 bg-emerald-50/50' : 'text-emerald-900 hover:text-emerald-600'}`}
             onClick={() => setIsMobileMenuOpen(false)}
           >
             Blog
           </Link>
           <Link 
             to="/contact" 
-            className="text-emerald-900 font-semibold text-lg py-2 hover:text-emerald-600 transition-colors"
+            className={`font-semibold text-lg py-2 transition-colors ${isActive('/contact') ? 'text-emerald-600 pl-2 border-l-2 border-emerald-600 bg-emerald-50/50' : 'text-emerald-900 hover:text-emerald-600'}`}
             onClick={() => setIsMobileMenuOpen(false)}
           >
             Contact
@@ -88,7 +94,7 @@ const Header = () => {
             <>
               <Link 
                 to="/dashboard" 
-                className="text-emerald-900 font-semibold text-lg py-2 hover:text-emerald-600 transition-colors"
+                className={`font-semibold text-lg py-2 transition-colors ${isActive('/dashboard') ? 'text-emerald-600 pl-2 border-l-2 border-emerald-600 bg-emerald-50/50' : 'text-emerald-900 hover:text-emerald-600'}`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Dashboard
