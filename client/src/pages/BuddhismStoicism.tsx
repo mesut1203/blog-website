@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getBlogs, getCategories } from '../lib/api';
-import type { Blog } from '../types';
-import { ArrowRight, Clock } from 'lucide-react';
+import type { Blog, Category } from '../types';
+import { ArrowRight, Calendar, Tag, Sun, Anchor, Quote, Flower2, Wind, Search, SlidersHorizontal, ChevronDown, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const BuddhismStoicismHero = () => (
@@ -9,157 +9,179 @@ const BuddhismStoicismHero = () => (
         <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1550141627-edb66a32a2eb?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center"></div>
         <div className="absolute inset-0 z-0 bg-black/50"></div>
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center text-white">
+            <span className="text-emerald-400 font-bold tracking-[0.2em] uppercase text-sm mb-6 block">Buddhism & Stoicism</span>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold leading-tight tracking-tight mb-6">
-                Finding Peace <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-orange-300">Within Chaos.</span>
+                Finding Peace <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-200 to-teal-300">Within Chaos.</span>
             </h1>
-            <p className="text-lg md:text-2xl text-amber-50/80 max-w-3xl mx-auto font-medium leading-relaxed">
+            <p className="text-lg md:text-2xl text-emerald-50/80 max-w-3xl mx-auto font-medium leading-relaxed">
                 Exploring the intersections of ancient wisdom, mindfulness, and rational thinking in a modern world.
             </p>
         </div>
     </section>
 );
 
-const BuddhismStoicismFeaturedPost = ({ post, categoryName }: { post: Blog, categoryName: string }) => {
-    // Basic excerpt generation from content if no excerpt field exists
-    const excerpt = post.content.length > 200 ? post.content.substring(0, 200) + '...' : post.content;
-    const formattedDate = new Date(post.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-
-    return (
-        <div className="mb-20">
-            <h2 className="text-2xl font-bold text-emerald-950 mb-8 border-b-2 border-emerald-100 pb-2 inline-block">Featured Exploration</h2>
-            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 bg-white rounded-3xl p-6 lg:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-emerald-50 group hover:shadow-[0_8px_40px_rgba(16,185,129,0.08)] transition-all duration-300">
-                <div className="w-full lg:w-1/2 aspect-video lg:aspect-auto border border-emerald-50 rounded-2xl overflow-hidden relative">
-                    {post.cover_image ? (
-                        <img src={post.cover_image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                    ) : (
-                        <div className="w-full h-full bg-emerald-100 flex items-center justify-center text-emerald-500 font-medium">No Image</div>
-                    )}
-                    <div className="absolute top-4 border-2 border-white/50 left-4 bg-emerald-600/90 backdrop-blur text-white text-xs font-bold uppercase tracking-wider py-1.5 px-3 rounded-full">
-                        {categoryName}
-                    </div>
-                </div>
-                <div className="w-full lg:w-1/2 flex flex-col justify-center">
-                    <div className="flex items-center gap-4 text-sm text-emerald-500 font-medium mb-4">
-                        <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> {formattedDate}</span>
-                    </div>
-                    <h3 className="text-3xl lg:text-4xl font-bold text-emerald-950 mb-4 leading-tight">{post.title}</h3>
-                    <p className="text-emerald-700 text-lg leading-relaxed mb-8">{excerpt}</p>
-
-                    <div className="mt-auto">
-                        <Link to={`/blog/${post.id}`} className="inline-flex items-center gap-2 text-white bg-emerald-600 hover:bg-emerald-700 py-3 px-6 rounded-xl font-semibold transition-all hover:gap-3 shadow-lg shadow-emerald-600/20 active:scale-95">
-                            Read Article
-                            <ArrowRight className="w-5 h-5" />
-                        </Link>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-const BuddhismStoicismPostCard = ({ post, categoryName }: { post: Blog, categoryName: string }) => {
-    const excerpt = post.content.length > 120 ? post.content.substring(0, 120) + '...' : post.content;
-    const formattedDate = new Date(post.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-
-    return (
-        <div className="flex flex-col bg-white rounded-3xl p-5 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-emerald-50 group hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(16,185,129,0.08)] transition-all duration-300">
-            <div className="w-full aspect-video rounded-2xl overflow-hidden mb-5 relative bg-emerald-50 border border-emerald-100/50">
-                {post.cover_image ? (
-                    <img src={post.cover_image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-emerald-400 font-medium text-sm">Pattern Default</div>
-                )}
-                <div className="absolute top-3 left-3 bg-white/90 backdrop-blur text-emerald-600 text-xs font-extrabold uppercase tracking-wider py-1 px-2.5 rounded-lg border border-emerald-100/50">
-                    {categoryName}
-                </div>
-            </div>
-
-            <div className="flex flex-col flex-1">
-                <span className="text-xs text-emerald-400 font-semibold mb-2">{formattedDate}</span>
-                <h4 className="text-xl font-bold text-emerald-950 mb-3 leading-snug group-hover:text-emerald-700 transition-colors">{post.title}</h4>
-                <p className="text-emerald-700/90 text-sm leading-relaxed mb-6 flex-1">{excerpt}</p>
-
-                <div className="mt-auto pt-4 border-t border-emerald-50 flex items-center justify-between">
-                    <Link to={`/blog/${post.id}`} className="flex items-center gap-1.5 text-emerald-600 font-semibold hover:text-emerald-800 transition-colors group/btn text-sm">
-                        Read
-                        <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                    </Link>
-                </div>
-            </div>
-        </div>
-    );
-};
+function getPageNumbers(currentPage: number, totalPages: number): (number | '...')[] {
+    if (totalPages <= 6) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    const pages: (number | '...')[] = [];
+    const add = (n: number) => { if (!pages.includes(n)) pages.push(n); };
+    const ellipsis = () => { if (pages[pages.length - 1] !== '...') pages.push('...'); };
+    add(1); add(2);
+    if (currentPage > 4) ellipsis();
+    for (let i = Math.max(3, currentPage - 1); i <= Math.min(totalPages - 2, currentPage + 1); i++) add(i);
+    if (currentPage < totalPages - 3) ellipsis();
+    add(totalPages - 1); add(totalPages);
+    return pages;
+}
 
 export default function BuddhismStoicism() {
-    const [posts, setPosts] = useState<Blog[]>([]);
+    const [allPosts, setAllPosts] = useState<Blog[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
+    const [activeFilterId, setActiveFilterId] = useState<string>('All');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const limit = 6;
 
     useEffect(() => {
-        const fetchData = async () => {
+        async function load() {
             try {
-                // Fetch categories and blogs
-                const categories = await getCategories();
-                const blogs = await getBlogs();
-
-                // Find the ID for the 'Buddhism & Stoicism' category
-                // For this mock implementation, we filter by category logic:
-                const targetCategory = categories.find(c => c.name.toLowerCase() === 'buddhism & stoicism');
-                let filteredBlogs: Blog[] = [];
-                
-                if (targetCategory) {
-                     filteredBlogs = blogs.filter(b => b.category_id === targetCategory.id);
-                } else if(blogs.length > 0) {
-                     // Fallback if no specific category is found in mock DB yet, just show anything available
-                     filteredBlogs = blogs;
-                }
-
-                setPosts(filteredBlogs);
-            } catch (error) {
-                console.error("Failed to fetch posts:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
+                const [cats, blogs] = await Promise.all([getCategories(), getBlogs()]);
+                setCategories(cats);
+                const root = cats.find(c => (c.name.toLowerCase().includes('buddhism') || c.name.toLowerCase().includes('stoic') || c.name.toLowerCase().includes('philosophy')) && !c.parent_id);
+                if (root) {
+                    const children = cats.filter(c => c.parent_id === root.id);
+                    const ids = new Set([root.id, ...children.map(c => c.id)]);
+                    setAllPosts(blogs.filter(b => b.category_id && ids.has(b.category_id)));
+                } else { setAllPosts(blogs); }
+            } catch (e) { console.error(e); }
+            finally { setLoading(false); }
+        }
+        load();
     }, []);
 
-    const featuredPost = posts.length > 0 ? posts[0] : null;
-    const remainingPosts = posts.length > 1 ? posts.slice(1) : [];
+    useEffect(() => {
+        const h = setTimeout(() => { setDebouncedSearch(searchQuery); setCurrentPage(1); }, 400);
+        return () => clearTimeout(h);
+    }, [searchQuery]);
+    useEffect(() => { setCurrentPage(1); }, [activeFilterId]);
+
+    const subCategories = useMemo(() => {
+        const root = categories.find(c => (c.name.toLowerCase().includes('buddhism') || c.name.toLowerCase().includes('stoic') || c.name.toLowerCase().includes('philosophy')) && !c.parent_id);
+        return root ? categories.filter(c => c.parent_id === root.id) : [];
+    }, [categories]);
+
+    const filteredPosts = useMemo(() => {
+        let r = allPosts;
+        if (activeFilterId !== 'All') r = r.filter(p => p.category_id === activeFilterId);
+        if (debouncedSearch) {
+            const q = debouncedSearch.toLowerCase();
+            r = r.filter(p => p.title.toLowerCase().includes(q) || p.content.toLowerCase().includes(q));
+        }
+        return r;
+    }, [allPosts, activeFilterId, debouncedSearch]);
+
+    const totalPages = Math.ceil(filteredPosts.length / limit) || 1;
+    const paginatedPosts = filteredPosts.slice((currentPage - 1) * limit, currentPage * limit);
+    const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c])), [categories]);
+
+    const getIcon = (name: string) => {
+        const n = name.toLowerCase();
+        if (n.includes('buddhism') || n.includes('zen')) return <Sun className="w-5 h-5" />;
+        if (n.includes('stoic') || n.includes('rational')) return <Anchor className="w-5 h-5" />;
+        if (n.includes('philoso') || n.includes('wisdom')) return <Quote className="w-5 h-5" />;
+        if (n.includes('medit') || n.includes('mindful')) return <Flower2 className="w-5 h-5" />;
+        return <Wind className="w-5 h-5" />;
+    };
+
+    const selectedLabel = activeFilterId === 'All' ? 'All Wisdom' : (subCategories.find(c => c.id === activeFilterId)?.name ?? 'Filter');
 
     return (
-        <div className="flex flex-col min-h-screen">
-            <main className="flex-1 w-full flex flex-col items-center">
-                <BuddhismStoicismHero />
-
-                <section className="w-full max-w-7xl mx-auto px-6 py-20">
-                    {loading ? (
-                        <div className="w-full py-32 flex justify-center items-center">
-                            <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
+        <div className="min-h-screen bg-emerald-50/30">
+            <BuddhismStoicismHero />
+            <div className="max-w-7xl mx-auto px-6 md:px-12 py-12 lg:py-16 relative z-30">
+                <div className="mb-12 bg-white/80 backdrop-blur-xl p-4 rounded-2xl shadow-xl shadow-emerald-900/10 flex flex-col md:flex-row gap-4 items-center border border-emerald-100 relative z-40">
+                    <div className="relative w-full md:flex-1 group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-emerald-600/50 group-focus-within:text-emerald-600 transition-colors">
+                            <Search className="w-5 h-5" />
                         </div>
-                    ) : posts.length === 0 ? (
-                        <div className="text-center py-32 bg-white rounded-3xl border border-emerald-100 mx-6 shadow-sm">
-                            <h3 className="text-2xl font-bold text-emerald-900 mb-2">No wisdom recorded yet.</h3>
-                            <p className="text-emerald-600">The mind is quiet today. Return soon for new insights.</p>
-                        </div>
-                    ) : (
-                        <>
-                            {featuredPost && <BuddhismStoicismFeaturedPost post={featuredPost} categoryName="Philosophy" />}
-
-                            {remainingPosts.length > 0 && (
-                                <div>
-                                    <h2 className="text-xl font-bold text-emerald-950 mb-8 border-b-2 border-emerald-100 pb-2 inline-block">Latest Musings</h2>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                        {remainingPosts.map(post => (
-                                            <BuddhismStoicismPostCard key={post.id} post={post} categoryName="Philosophy" />
-                                        ))}
-                                    </div>
+                        <input type="text" placeholder="Search ancient wisdom and modern thoughts..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full pl-12 pr-4 py-3.5 bg-emerald-50/50 border border-emerald-100/80 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-emerald-950 placeholder-emerald-600/50 transition-all font-medium shadow-sm" />
+                    </div>
+                    <div className="relative w-full md:w-64">
+                        <button onClick={() => setIsFilterOpen(!isFilterOpen)} className="w-full flex items-center justify-between bg-emerald-50/80 border border-emerald-200/80 rounded-2xl px-5 py-3.5 text-emerald-900 font-semibold hover:bg-emerald-100/50 transition-colors shadow-sm">
+                            <div className="flex items-center gap-3"><SlidersHorizontal className="w-5 h-5 text-emerald-600" /><span>{selectedLabel}</span></div>
+                            <ChevronDown className={`w-5 h-5 text-emerald-600 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        {isFilterOpen && (
+                            <div className="absolute top-full mt-2 w-full bg-white rounded-2xl shadow-xl border border-emerald-100 overflow-hidden z-50">
+                                <div className="py-2">
+                                    <button onClick={() => { setActiveFilterId('All'); setIsFilterOpen(false); }} className={`w-full text-left px-5 py-3 text-sm font-semibold flex items-center justify-between transition-colors ${activeFilterId === 'All' ? 'bg-emerald-50 text-emerald-700' : 'text-emerald-900 hover:bg-emerald-50/50'}`}>
+                                        <span className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-emerald-500" />All Wisdom</span>
+                                        {activeFilterId === 'All' && <div className="w-2 h-2 rounded-full bg-emerald-500"></div>}
+                                    </button>
+                                    {subCategories.map(cat => (
+                                        <button key={cat.id} onClick={() => { setActiveFilterId(cat.id); setIsFilterOpen(false); }} className={`w-full text-left px-5 py-3 text-sm font-semibold flex items-center justify-between transition-colors ${activeFilterId === cat.id ? 'bg-emerald-50 text-emerald-700' : 'text-emerald-900 hover:bg-emerald-50/50'}`}>
+                                            <span className="flex items-center gap-2"><span className="text-emerald-500">{getIcon(cat.name)}</span>{cat.name}</span>
+                                            {activeFilterId === cat.id && <div className="w-2 h-2 rounded-full bg-emerald-500"></div>}
+                                        </button>
+                                    ))}
                                 </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="mb-10 flex items-center justify-between text-emerald-800/70 font-semibold px-2">
+                    <p>{loading ? 'Loading...' : `${filteredPosts.length} ${filteredPosts.length === 1 ? 'result' : 'results'}`}</p>
+                    {debouncedSearch && <p>for &ldquo;{debouncedSearch}&rdquo;</p>}
+                </div>
+
+                {loading ? (
+                    <div className="flex justify-center items-center h-64"><div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div></div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {paginatedPosts.map(blog => {
+                            const cat = blog.category_id ? categoryMap.get(blog.category_id) : undefined;
+                            return (
+                                <article key={blog.id} className="bg-white/70 backdrop-blur-md rounded-[2rem] p-6 shadow-xl shadow-emerald-900/5 hover:shadow-2xl hover:shadow-emerald-900/10 transition-all duration-500 hover:-translate-y-2 border border-white group flex flex-col">
+                                    {blog.cover_image && <div className="mb-6 overflow-hidden rounded-[1.5rem] h-48 relative shrink-0"><img src={blog.cover_image} alt={blog.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" /></div>}
+                                    <div className="flex items-center gap-3 text-xs font-bold text-emerald-600 mb-4 uppercase tracking-wider flex-wrap">
+                                        {cat && <span className="flex items-center gap-1.5 bg-emerald-100/80 px-3 py-1.5 rounded-full text-emerald-800"><Tag className="w-3.5 h-3.5" />{cat.name}</span>}
+                                        <span className="flex items-center gap-1.5 text-emerald-600/60 font-medium"><Calendar className="w-3.5 h-3.5" />{new Date(blog.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                    </div>
+                                    <Link to={`/blog/${blog.id}`} className="text-xl font-bold text-emerald-950 mb-3 line-clamp-2 group-hover:text-emerald-600 transition-colors leading-tight">{blog.title}</Link>
+                                    <p className="text-emerald-800/70 line-clamp-3 leading-relaxed mb-6 flex-1 text-sm">{blog.content}</p>
+                                    <div className="pt-4 border-t border-emerald-100/50 mt-auto">
+                                        <Link to={`/blog/${blog.id}`} className="text-emerald-600 font-bold text-sm flex items-center gap-2 hover:text-emerald-700 transition-colors">Read article <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></Link>
+                                    </div>
+                                </article>
+                            );
+                        })}
+                        {paginatedPosts.length === 0 && (
+                            <div className="col-span-full text-center py-32 bg-white/40 rounded-[3rem] border border-white/50">
+                                <div className="bg-emerald-100/50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6"><Sun className="w-10 h-10 text-emerald-400" /></div>
+                                <h3 className="text-3xl font-bold text-emerald-950 mb-3">A quiet pond.</h3>
+                                <p className="text-emerald-700/70 text-lg max-w-sm mx-auto">No wisdom found. Try a different path.</p>
+                                <button onClick={() => { setSearchQuery(''); setActiveFilterId('All'); }} className="mt-8 px-6 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-600/20">Clear all filters</button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {totalPages > 1 && (
+                    <div className="mt-16 flex justify-center items-center gap-2 flex-wrap">
+                        <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className={`px-4 py-2 rounded-xl font-bold transition-all ${currentPage === 1 ? 'bg-emerald-50 text-emerald-300 cursor-not-allowed' : 'bg-white text-emerald-600 hover:bg-emerald-600 hover:text-white shadow-md'}`}>Previous</button>
+                        <div className="flex gap-1 flex-wrap justify-center">
+                            {getPageNumbers(currentPage, totalPages).map((page, idx) =>
+                                page === '...' ? <span key={`e${idx}`} className="w-10 h-10 flex items-center justify-center text-emerald-400 font-bold">&hellip;</span>
+                                    : <button key={page} onClick={() => setCurrentPage(page)} className={`w-10 h-10 rounded-xl font-bold transition-all ${currentPage === page ? 'bg-emerald-600 text-white shadow-md' : 'bg-white text-emerald-600 hover:bg-emerald-50 shadow-sm'}`}>{page}</button>
                             )}
-                        </>
-                    )}
-                </section>
-            </main>
+                        </div>
+                        <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className={`px-4 py-2 rounded-xl font-bold transition-all ${currentPage === totalPages ? 'bg-emerald-50 text-emerald-300 cursor-not-allowed' : 'bg-white text-emerald-600 hover:bg-emerald-600 hover:text-white shadow-md'}`}>Next</button>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

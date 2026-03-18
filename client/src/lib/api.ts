@@ -46,7 +46,7 @@ export const getPaginatedBlogsWithCategories = async ({
     page?: number;
     limit?: number;
     search?: string;
-    categoryId?: string;
+    categoryId?: string | string[];
 } = {}): Promise<{ data: BlogWithCategory[], totalCount: number }> => {
     const from = (page - 1) * limit;
     const to = from + limit - 1;
@@ -59,10 +59,15 @@ export const getPaginatedBlogsWithCategories = async ({
         query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%`);
     }
 
-    if (categoryId !== 'All') {
-        // We match by category name or ID depending on how the frontend sends it.
-        // Assuming the select passes category name for "selectedCategory" right now. Let's filter by name because the current frontend passes Name.
-        query = query.eq('categories.name', categoryId);
+    if (categoryId && categoryId !== 'All') {
+        const ids = Array.isArray(categoryId) ? categoryId : [categoryId];
+        // Check if the first element is a UUID (common for IDs) or a name
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ids[0]);
+        if (isUuid) {
+            query = query.in('category_id', ids);
+        } else {
+            query = query.in('categories.name', ids);
+        }
     }
 
     const { data, error, count } = await query
