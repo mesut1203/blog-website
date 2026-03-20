@@ -1,4 +1,4 @@
-import { Leaf, Twitter, Github, Linkedin, Mail } from 'lucide-react';
+import { Leaf } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Footer = () => (
@@ -35,26 +35,7 @@ const Footer = () => (
                 </ul>
             </div>
 
-            {/* Social Links & Copyright */}
-            <div className="flex flex-col items-center md:items-end gap-6">
-                <div className="flex items-center gap-3">
-                    {[
-                        { Icon: Twitter, href: 'https://twitter.com', label: 'Twitter' },
-                        { Icon: Github, href: 'https://github.com', label: 'Github' },
-                        { Icon: Linkedin, href: 'https://linkedin.com', label: 'LinkedIn' },
-                        { Icon: Mail, href: 'mailto:contact@soultrees.com', label: 'Email' }
-                    ].map((item, i) => (
-                        <a
-                            key={i}
-                            href={item.href}
-                            aria-label={item.label}
-                            className="w-9 h-9 rounded-full bg-emerald-900/50 border border-emerald-800/80 flex items-center justify-center text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all hover:-translate-y-0.5"
-                        >
-                            <item.Icon className="w-4 h-4" />
-                        </a>
-                    ))}
-                </div>
-            </div>
+            {/* Social Links & Copyright - Removed */}
         </div>
 
         {/* Bottom Bar strictly one line */}
