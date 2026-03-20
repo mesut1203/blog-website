@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Tag, Clock } from 'lucide-react';
 import { getBlogWithCategory } from '../lib/api';
 import type { BlogWithCategory } from '../types';
@@ -107,20 +107,52 @@ export default function BlogDetail() {
             <div className="max-w-4xl mx-auto px-6 md:px-12 -mt-8 relative z-20">
                 <div className="bg-white/90 backdrop-blur-xl rounded-[2.5rem] p-8 md:p-12 lg:p-16 shadow-2xl shadow-emerald-950/5 border border-white">
                     <div className="prose prose-lg md:prose-xl prose-emerald max-w-none text-emerald-900/80 leading-relaxed font-sans">
-                        {/* We use white-space pre-wrap to respect newlines from simple textareas */}
-                        <div className="whitespace-pre-wrap">
-                            {blog.content}
-                        </div>
+                        <div
+                            className="blog-content"
+                            dangerouslySetInnerHTML={{ __html: blog.content }}
+                        />
+                        <style>{`
+                            .blog-content h1 { font-size: 2rem; font-weight: 800; color: #064e3b; margin: 1.5rem 0 0.75rem; line-height: 1.2; }
+                            .blog-content h2 { font-size: 1.5rem; font-weight: 700; color: #065f46; margin: 1.25rem 0 0.6rem; line-height: 1.3; }
+                            .blog-content h3 { font-size: 1.2rem; font-weight: 700; color: #047857; margin: 1rem 0 0.5rem; line-height: 1.4; }
+                            .blog-content p { margin-bottom: 1.1rem; line-height: 1.8; }
+                            .blog-content ul { list-style: disc; padding-left: 1.75rem; margin-bottom: 1rem; }
+                            .blog-content ol { list-style: decimal; padding-left: 1.75rem; margin-bottom: 1rem; }
+                            .blog-content li { margin-bottom: 0.4rem; line-height: 1.7; }
+                            .blog-content blockquote { border-left: 4px solid #34d399; padding: 0.75rem 1.25rem; background: #f0fdf4; border-radius: 0 0.75rem 0.75rem 0; color: #065f46; font-style: italic; margin: 1.25rem 0; }
+                            .blog-content a { color: #059669; text-decoration: underline; font-weight: 500; }
+                            .blog-content a:hover { color: #047857; }
+                            .blog-content img {
+                                max-width: 85%;
+                                max-height: 300px;
+                                height: auto;
+                                object-fit: contain;
+                                display: block;
+                                margin: 1.5rem auto;
+                                border-radius: 1rem;
+                                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                                border: 1px solid #f0fdf4;
+                            }
+                            .blog-content b, .blog-content strong { font-weight: 700; color: #064e3b; }
+                            .blog-content i, .blog-content em { font-style: italic; }
+                            .blog-content u { text-decoration: underline; }
+                        `}</style>
                     </div>
 
                     <div className="mt-16 pt-8 border-t border-emerald-100/80 flex justify-center">
-                        <Link
-                            to="/blog"
-                            className="inline-flex items-center gap-2 px-8 py-4 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white font-bold rounded-2xl transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-emerald-600/20 group"
+                        <button
+                            onClick={() => {
+                                if (window.history.length > 2) {
+                                    navigate(-1);
+                                } else {
+                                    navigate('/blog');
+                                }
+                            }}
+                            className="inline-flex items-center gap-2 px-8 py-4 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white font-bold rounded-2xl transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-emerald-600/20 group cursor-pointer"
                         >
                             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                            Return to full journal
-                        </Link>
+                            Return Back
+                        </button>
                     </div>
                 </div>
             </div>

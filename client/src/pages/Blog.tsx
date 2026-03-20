@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { usePersistedState } from '../hooks/usePersistedState';
+import { useScrollRestore } from '../hooks/useScrollRestore';
 import { Leaf, Calendar, Tag, Search, SlidersHorizontal, ArrowRight, ChevronDown, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getPaginatedBlogsWithCategories, getCategories } from '../lib/api';
@@ -7,15 +9,15 @@ import type { BlogWithCategory, Category } from '../types';
 export default function Blog() {
     const [blogs, setBlogs] = useState<BlogWithCategory[]>([]);
     const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState<string>('All');
+    const [searchQuery, setSearchQuery] = usePersistedState('blog_search', '');
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
+    const [selectedCategory, setSelectedCategory] = usePersistedState('blog_category', 'All');
     const [categories, setCategories] = useState<Category[]>([]);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
 
     // Pagination state
-    const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = usePersistedState('blog_page', 1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalResults, setTotalResults] = useState(0);
     const limit = 6;
@@ -25,23 +27,39 @@ export default function Blog() {
         getCategories().then(setCategories).catch(console.error);
     }, []);
 
+    const isMounted = useRef(false);
+
     // Debounce search input
     useEffect(() => {
+        const mounted = isMounted.current;
         const handler = setTimeout(() => {
             setDebouncedSearchQuery(searchQuery);
-            setCurrentPage(1); // Reset to page 1 on new search
+            if (mounted) {
+                setCurrentPage(1); // Reset to page 1 on new search only
+            }
         }, 500);
         return () => clearTimeout(handler);
     }, [searchQuery]);
 
     // Reset page to 1 on category change
     useEffect(() => {
-        setCurrentPage(1);
+        if (isMounted.current) {
+            setCurrentPage(1);
+        }
     }, [selectedCategory]);
+
+    useEffect(() => {
+        isMounted.current = true;
+        return () => {
+            isMounted.current = false;
+        };
+    }, []);
 
     // Create separated category structures
     const mainCategories = categories.filter(c => !c.parent_id);
     const getSubCategories = (parentId: string) => categories.filter(c => c.parent_id === parentId);
+
+    useScrollRestore(loading);
 
     useEffect(() => {
         async function loadBlogs() {
@@ -74,9 +92,9 @@ export default function Blog() {
         loadBlogs();
     }, [currentPage, debouncedSearchQuery, selectedCategory]);
 
-    if (loading) {
+    if (loading && blogs.length === 0) {
         return (
-            <div className="flex justify-center items-center h-[60vh]">
+            <div className="flex justify-center items-center h-[60vh] bg-emerald-50/30">
                 <div className="relative w-20 h-20">
                     <div className="absolute inset-0 border-4 border-emerald-100 rounded-full"></div>
                     <div className="absolute inset-0 border-4 border-emerald-600 rounded-full border-t-transparent animate-spin"></div>
@@ -272,7 +290,7 @@ export default function Blog() {
                             </Link>
 
                             <p className="text-emerald-800/70 line-clamp-3 leading-relaxed mb-6 flex-1 text-base">
-                                {blog.content}
+                                {blog.content.replace(/<[^>]+>/g, '')}
                             </p>
 
                             <div className="pt-5 border-t border-emerald-100/50 mt-auto flex items-center justify-between">
