@@ -1,4 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { usePersistedState } from '../hooks/usePersistedState';
+import { useScrollRestore } from '../hooks/useScrollRestore';
 import { Brain, BrainCircuit, Calendar, Tag, Search, SlidersHorizontal, ArrowRight, ChevronDown, Heart, Activity } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getBlogs, getCategories } from '../lib/api';
@@ -24,12 +26,14 @@ export default function Psychology() {
     const [allBlogs, setAllBlogs] = useState<Blog[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [debouncedSearch, setDebouncedSearch] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState<string>('All');
+    const [searchQuery, setSearchQuery] = usePersistedState('psych_search', '');
+    const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+    const [selectedCategory, setSelectedCategory] = usePersistedState('psych_filter', 'All');
     const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = usePersistedState('psych_page', 1);
     const limit = 6;
+
+    useScrollRestore(loading);
 
     // Fetch all data on mount — Dashboard sync is automatic since blogs come straight from DB
     useEffect(() => {
@@ -51,16 +55,30 @@ export default function Psychology() {
         loadData();
     }, []);
 
+    const isMounted = useRef(false);
+
     // Debounce search
     useEffect(() => {
+        const mounted = isMounted.current;
         const handler = setTimeout(() => {
             setDebouncedSearch(searchQuery);
-            setCurrentPage(1);
+            if (mounted) {
+                setCurrentPage(1);
+            }
         }, 400);
         return () => clearTimeout(handler);
     }, [searchQuery]);
 
-    useEffect(() => { setCurrentPage(1); }, [selectedCategory]);
+    useEffect(() => { 
+        if (isMounted.current) {
+            setCurrentPage(1); 
+        }
+    }, [selectedCategory]);
+
+    useEffect(() => { 
+        isMounted.current = true; 
+        return () => { isMounted.current = false; };
+    }, []);
 
     // Build psychology category tree
     const psychRoot = useMemo(() =>
@@ -196,8 +214,7 @@ export default function Psychology() {
                     {debouncedSearch && <p>for &ldquo;{debouncedSearch}&rdquo;</p>}
                 </div>
 
-                {/* Blog Grid */}
-                {loading ? (
+                {loading && allBlogs.length === 0 ? (
                     <div className="flex justify-center items-center h-64">
                         <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
                     </div>
@@ -242,7 +259,7 @@ export default function Psychology() {
                                     </Link>
 
                                     <p className="text-emerald-800/70 line-clamp-3 leading-relaxed mb-6 flex-1 text-base">
-                                        {blog.content}
+                                        {blog.content.replace(/<[^>]+>/g, '')}
                                     </p>
 
                                     <div className="pt-5 border-t border-emerald-100/50 mt-auto">

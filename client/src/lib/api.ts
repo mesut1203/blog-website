@@ -183,3 +183,33 @@ export const deleteQuote = async (id: string): Promise<void> => {
 
     if (error) throw error;
 };
+
+// ==========================================
+// STORAGE
+// ==========================================
+export const uploadImage = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const fileName = `blog-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+
+    const { data, error: uploadError } = await supabase.storage
+        .from('images')
+        .upload(fileName, file, {
+            contentType: file.type,
+            upsert: false,
+        });
+
+    if (uploadError) {
+        console.error('Supabase Storage upload error:', uploadError);
+        throw new Error(uploadError.message || 'Upload failed');
+    }
+
+    const { data: urlData } = supabase.storage
+        .from('images')
+        .getPublicUrl(data.path);
+
+    if (!urlData?.publicUrl) {
+        throw new Error('Could not get public URL for uploaded image');
+    }
+
+    return urlData.publicUrl;
+};

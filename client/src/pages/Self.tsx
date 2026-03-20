@@ -1,4 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { usePersistedState } from '../hooks/usePersistedState';
+import { useScrollRestore } from '../hooks/useScrollRestore';
 import { getBlogs, getCategories } from '../lib/api';
 import type { Blog, Category } from '../types';
 import { ArrowRight, Calendar, Tag, User, Target, TrendingUp, Sparkles, Search, Compass, SlidersHorizontal, ChevronDown } from 'lucide-react';
@@ -37,12 +39,14 @@ export default function Self() {
     const [allPosts, setAllPosts] = useState<Blog[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeFilterId, setActiveFilterId] = useState('All');
-    const [searchQuery, setSearchQuery] = useState('');
-    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [activeFilterId, setActiveFilterId] = usePersistedState('self_filter', 'All');
+    const [searchQuery, setSearchQuery] = usePersistedState('self_search', '');
+    const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = usePersistedState('self_page', 1);
     const limit = 6;
+
+    useScrollRestore(loading);
 
     useEffect(() => {
         async function load() {
@@ -59,8 +63,29 @@ export default function Self() {
         load();
     }, []);
 
-    useEffect(() => { const h = setTimeout(() => { setDebouncedSearch(searchQuery); setCurrentPage(1); }, 400); return () => clearTimeout(h); }, [searchQuery]);
-    useEffect(() => { setCurrentPage(1); }, [activeFilterId]);
+    const isMounted = useRef(false);
+
+    useEffect(() => {
+        const mounted = isMounted.current;
+        const h = setTimeout(() => { 
+            setDebouncedSearch(searchQuery); 
+            if (mounted) {
+                setCurrentPage(1); 
+            }
+        }, 400);
+        return () => clearTimeout(h);
+    }, [searchQuery]);
+
+    useEffect(() => { 
+        if (isMounted.current) {
+            setCurrentPage(1); 
+        }
+    }, [activeFilterId]);
+
+    useEffect(() => { 
+        isMounted.current = true; 
+        return () => { isMounted.current = false; };
+    }, []);
 
     const subCategories = useMemo(() => {
         const root = categories.find(c => c.name.toLowerCase() === 'self' && !c.parent_id);
@@ -124,7 +149,7 @@ export default function Self() {
                     {debouncedSearch && <p>for &ldquo;{debouncedSearch}&rdquo;</p>}
                 </div>
 
-                {loading ? <div className="flex justify-center items-center h-64"><div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div></div> : (
+                {loading && allPosts.length === 0 ? <div className="flex justify-center items-center h-64"><div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div></div> : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {paginatedPosts.map(blog => {
                             const cat = blog.category_id ? categoryMap.get(blog.category_id) : undefined;
@@ -136,7 +161,7 @@ export default function Self() {
                                         <span className="flex items-center gap-1.5 text-emerald-600/60 font-medium"><Calendar className="w-3.5 h-3.5" />{new Date(blog.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                     </div>
                                     <Link to={`/blog/${blog.id}`} className="text-xl font-bold text-emerald-950 mb-3 line-clamp-2 group-hover:text-emerald-600 transition-colors leading-tight">{blog.title}</Link>
-                                    <p className="text-emerald-800/70 line-clamp-3 leading-relaxed mb-6 flex-1 text-sm">{blog.content}</p>
+                                    <p className="text-emerald-800/70 line-clamp-3 leading-relaxed mb-6 flex-1 text-sm">{blog.content.replace(/<[^>]+>/g, '')}</p>
                                     <div className="pt-4 border-t border-emerald-100/50 mt-auto">
                                         <Link to={`/blog/${blog.id}`} className="text-emerald-600 font-bold text-sm flex items-center gap-2 hover:text-emerald-700 transition-colors">Read article <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></Link>
                                     </div>
