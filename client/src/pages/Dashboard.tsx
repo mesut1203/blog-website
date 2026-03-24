@@ -31,6 +31,7 @@ import {
   createQuote,
   updateQuote,
   getCategories,
+  uploadImage,
 } from "../lib/api";
 import type { Blog, Quote, Category, BlogInput, QuoteInput } from "../types";
 
@@ -194,7 +195,12 @@ function RichTextEditor({
     let blockFormat = document.queryCommandValue("formatBlock");
     if (blockFormat) {
       blockFormat = blockFormat.replace(/[<>]/g, "").toUpperCase();
-      if (blockFormat === "H1" || blockFormat === "H2" || blockFormat === "BLOCKQUOTE") active.push(blockFormat);
+      if (
+        blockFormat === "H1" ||
+        blockFormat === "H2" ||
+        blockFormat === "BLOCKQUOTE"
+      )
+        active.push(blockFormat);
     }
     setActiveFormats(active);
   };
@@ -214,15 +220,41 @@ function RichTextEditor({
     });
   };
 
-  const handleImageUrlClick = () => {
-    openPrompt("Insert Image URL", "https://example.com/image.jpg", (url) => {
-      if (url) {
+  const handleImageUploadClick = () => {
+    saveSelection(); // Capture current selection
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      try {
+        const url = await uploadImage(file, "inlines");
         restoreSelection();
         editorRef.current?.focus();
-        document.execCommand("insertImage", false, url);
+
+        // We use insertHTML instead of insertImage to avoid browsers creating unnecessary &nbsp; nodes.
+        const imgHtml = `<img src="${url}" alt="Image" />`;
+        document.execCommand("insertHTML", false, imgHtml);
+
+        // Clean up any literal or unwanted &nbsp; strings from HTML that may have been generated
+        if (
+          editorRef.current &&
+          editorRef.current.innerHTML.includes("&nbsp;")
+        ) {
+          editorRef.current.innerHTML = editorRef.current.innerHTML.replace(
+            /&nbsp;/g,
+            " ",
+          );
+        }
         syncContent();
+      } catch (error: any) {
+        console.error("Upload error", error);
+        alert("Failed to upload image: " + (error.message || "Unknown error"));
       }
-    });
+    };
+    input.click();
   };
 
   const ToolBtn = ({
@@ -393,8 +425,8 @@ function RichTextEditor({
           🔗
         </ToolBtn>
 
-        <ToolBtn title="Insert Image via URL" onClick={handleImageUrlClick}>
-          🌐🖼️
+        <ToolBtn title="Upload Image" onClick={handleImageUploadClick}>
+          🖼️
         </ToolBtn>
 
         <div className="w-px h-5 bg-emerald-200 mx-1" />
@@ -623,7 +655,10 @@ export default function Dashboard() {
     type: "success",
   });
 
-  const showToast = (message: string, type: "success" | "error" = "success") => {
+  const showToast = (
+    message: string,
+    type: "success" | "error" = "success",
+  ) => {
     setToast({ show: true, message, type });
     setTimeout(() => {
       setToast((prev) => ({ ...prev, show: false }));
@@ -1605,17 +1640,52 @@ export default function Dashboard() {
 
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-emerald-900 ml-1">
-                    Cover Image URL
+                    Cover Image
                   </label>
-                  <input
-                    type="url"
-                    value={blogForm.cover_image || ""}
-                    onChange={(e) =>
-                      setBlogForm({ ...blogForm, cover_image: e.target.value })
-                    }
-                    className="w-full bg-emerald-50/30 border border-emerald-100 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-emerald-900 placeholder-emerald-300 transition-all font-medium"
-                    placeholder="https://..."
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={blogForm.cover_image || ""}
+                      onChange={(e) =>
+                        setBlogForm({
+                          ...blogForm,
+                          cover_image: e.target.value,
+                        })
+                      }
+                      className="flex-1 min-w-0 bg-emerald-50/30 border border-emerald-100 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-emerald-900 placeholder-emerald-300 transition-all font-medium"
+                      placeholder="https://... or click Upload"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const input = document.createElement("input");
+                        input.type = "file";
+                        input.accept = "image/*";
+                        input.onchange = async (e) => {
+                          const file = (e.target as HTMLInputElement)
+                            .files?.[0];
+                          if (!file) return;
+                          try {
+                            const url = await uploadImage(file, "covers");
+                            setBlogForm((prev) => ({
+                              ...prev,
+                              cover_image: url,
+                            }));
+                          } catch (err: any) {
+                            console.error(err);
+                            alert(
+                              "Upload cover failed: " +
+                                (err.message || "Unknown error"),
+                            );
+                          }
+                        };
+                        input.click();
+                      }}
+                      className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-xl hover:bg-emerald-200 font-semibold shadow-sm shrink-0 transition-colors"
+                    >
+                      Upload
+                    </button>
+                  </div>
                 </div>
               </div>
 
