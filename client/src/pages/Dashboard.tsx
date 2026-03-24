@@ -79,7 +79,7 @@ function RichTextEditor({
   const [promptPlaceholder, setPromptPlaceholder] = useState("");
   const [promptValue, setPromptValue] = useState("");
   const [promptCallback, setPromptCallback] = useState<(val: string) => void>(
-    () => {},
+    () => { },
   );
 
   const openPrompt = (
@@ -225,7 +225,11 @@ function RichTextEditor({
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
+    input.style.display = "none";
+    document.body.appendChild(input);
+
     input.onchange = async (e) => {
+      document.body.removeChild(input);
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
@@ -275,11 +279,10 @@ function RichTextEditor({
         e.preventDefault();
         onClick();
       }}
-      className={`px-2 py-1.5 rounded-lg transition-colors text-sm font-medium ${
-        active
+      className={`px-2 py-1.5 rounded-lg transition-colors text-sm font-medium ${active
           ? "bg-emerald-200 text-emerald-900 shadow-inner"
           : "text-emerald-700 hover:bg-emerald-100 hover:text-emerald-900"
-      }`}
+        }`}
     >
       {children}
     </button>
@@ -321,9 +324,8 @@ function RichTextEditor({
       {/* Toolbar */}
       <div
         ref={toolbarRef}
-        className={`flex flex-wrap items-center gap-0.5 px-3 py-2 bg-emerald-50 border-b border-emerald-100 sticky top-[80px] sm:top-[96px] z-10 backdrop-blur-md ${
-          isStuck ? "rounded-none" : "rounded-t-2xl shadow-sm"
-        }`}
+        className={`flex flex-wrap items-center gap-0.5 px-3 py-2 bg-emerald-50 border-b border-emerald-100 sticky top-[80px] sm:top-[96px] z-10 backdrop-blur-md ${isStuck ? "rounded-none" : "rounded-t-2xl shadow-sm"
+          }`}
       >
         <ToolBtn
           title="Bold"
@@ -538,11 +540,10 @@ const SidebarItem = ({
 }) => (
   <div
     onClick={onClick}
-    className={`flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all ${
-      active
+    className={`flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all ${active
         ? "bg-emerald-500 text-white font-medium shadow-md shadow-emerald-500/20"
         : "text-emerald-700/70 hover:bg-emerald-50 hover:text-emerald-900 font-medium"
-    }`}
+      }`}
   >
     <Icon className={`w-5 h-5 ${active ? "text-white" : "text-emerald-600"}`} />
     <span>{label}</span>
@@ -641,7 +642,7 @@ export default function Dashboard() {
     isOpen: false,
     title: "",
     message: "",
-    onConfirm: () => {},
+    onConfirm: () => { },
     type: "warning",
   });
 
@@ -1661,7 +1662,11 @@ export default function Dashboard() {
                         const input = document.createElement("input");
                         input.type = "file";
                         input.accept = "image/*";
+                        input.style.display = "none";
+                        document.body.appendChild(input);
+
                         input.onchange = async (e) => {
+                          document.body.removeChild(input);
                           const file = (e.target as HTMLInputElement)
                             .files?.[0];
                           if (!file) return;
@@ -1675,7 +1680,7 @@ export default function Dashboard() {
                             console.error(err);
                             alert(
                               "Upload cover failed: " +
-                                (err.message || "Unknown error"),
+                              (err.message || "Unknown error"),
                             );
                           }
                         };
@@ -1794,11 +1799,10 @@ export default function Dashboard() {
           <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md border border-emerald-50 overflow-hidden transform animate-in zoom-in-95 duration-200">
             <div className="p-8 text-center">
               <div
-                className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 ${
-                  confirmModal.type === "danger"
+                className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 ${confirmModal.type === "danger"
                     ? "bg-rose-50 text-rose-500"
                     : "bg-amber-50 text-amber-500"
-                }`}
+                  }`}
               >
                 <AlertTriangle className="w-8 h-8" />
               </div>
@@ -1820,11 +1824,10 @@ export default function Dashboard() {
               </button>
               <button
                 onClick={confirmModal.onConfirm}
-                className={`flex-1 py-3 px-4 rounded-xl font-bold text-white shadow-lg transition-all active:scale-95 ${
-                  confirmModal.type === "danger"
+                className={`flex-1 py-3 px-4 rounded-xl font-bold text-white shadow-lg transition-all active:scale-95 ${confirmModal.type === "danger"
                     ? "bg-rose-500 hover:bg-rose-600 shadow-rose-200"
                     : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200"
-                }`}
+                  }`}
               >
                 Confirm Delete
               </button>
@@ -1836,18 +1839,16 @@ export default function Dashboard() {
       {/* TOAST NOTIFICATION                         */}
       {/* ========================================== */}
       <div
-        className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] transition-all duration-500 transform ${
-          toast.show
+        className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] transition-all duration-500 transform ${toast.show
             ? "translate-y-0 opacity-100"
             : "translate-y-12 opacity-0 pointer-events-none"
-        }`}
+          }`}
       >
         <div
-          className={`px-6 py-4 rounded-[1.5rem] shadow-2xl flex items-center gap-4 min-w-[320px] backdrop-blur-md border ${
-            toast.type === "success"
+          className={`px-6 py-4 rounded-[1.5rem] shadow-2xl flex items-center gap-4 min-w-[320px] backdrop-blur-md border ${toast.type === "success"
               ? "bg-emerald-600/90 text-white border-emerald-400/30"
               : "bg-rose-600/90 text-white border-rose-400/30"
-          }`}
+            }`}
         >
           <div className="p-1.5 bg-white/20 rounded-full">
             {toast.type === "success" ? (
