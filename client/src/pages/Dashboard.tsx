@@ -31,8 +31,11 @@ import {
   createQuote,
   updateQuote,
   getCategories,
+  uploadImage,
+  getFilePathFromUrl,
 } from "../lib/api";
 import type { Blog, Quote, Category, BlogInput, QuoteInput } from "../types";
+import { supabase } from "../supabaseClient";
 
 // ==========================================
 // RICH TEXT EDITOR COMPONENT
@@ -194,7 +197,12 @@ function RichTextEditor({
     let blockFormat = document.queryCommandValue("formatBlock");
     if (blockFormat) {
       blockFormat = blockFormat.replace(/[<>]/g, "").toUpperCase();
-      if (blockFormat === "H1" || blockFormat === "H2" || blockFormat === "BLOCKQUOTE") active.push(blockFormat);
+      if (
+        blockFormat === "H1" ||
+        blockFormat === "H2" ||
+        blockFormat === "BLOCKQUOTE"
+      )
+        active.push(blockFormat);
     }
     setActiveFormats(active);
   };
@@ -214,15 +222,45 @@ function RichTextEditor({
     });
   };
 
-  const handleImageUrlClick = () => {
-    openPrompt("Insert Image URL", "https://example.com/image.jpg", (url) => {
-      if (url) {
+  const handleImageUploadClick = () => {
+    saveSelection(); // Capture current selection
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.style.display = "none";
+    document.body.appendChild(input);
+
+    input.onchange = async (e) => {
+      document.body.removeChild(input);
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      try {
+        const url = await uploadImage(file, "inlines");
         restoreSelection();
         editorRef.current?.focus();
-        document.execCommand("insertImage", false, url);
+
+        // We use insertHTML instead of insertImage to avoid browsers creating unnecessary &nbsp; nodes.
+        const imgHtml = `<img src="${url}" alt="Image" />`;
+        document.execCommand("insertHTML", false, imgHtml);
+
+        // Clean up any literal or unwanted &nbsp; strings from HTML that may have been generated
+        if (
+          editorRef.current &&
+          editorRef.current.innerHTML.includes("&nbsp;")
+        ) {
+          editorRef.current.innerHTML = editorRef.current.innerHTML.replace(
+            /&nbsp;/g,
+            " ",
+          );
+        }
         syncContent();
+      } catch (error: any) {
+        console.error("Upload error", error);
+        alert("Failed to upload image: " + (error.message || "Unknown error"));
       }
-    });
+    };
+    input.click();
   };
 
   const ToolBtn = ({
@@ -393,8 +431,8 @@ function RichTextEditor({
           🔗
         </ToolBtn>
 
-        <ToolBtn title="Insert Image via URL" onClick={handleImageUrlClick}>
-          🌐🖼️
+        <ToolBtn title="Upload Image" onClick={handleImageUploadClick}>
+          🖼️
         </ToolBtn>
 
         <div className="w-px h-5 bg-emerald-200 mx-1" />
@@ -409,6 +447,87 @@ function RichTextEditor({
         contentEditable
         suppressContentEditableWarning
         onInput={syncContent}
+        onPaste={(e) => {
+          e.preventDefault();
+          const items = e.clipboardData?.items;
+          let hasImage = false;
+
+          // Check if pasting an image file directly
+          if (items) {
+            for (let i = 0; i < items.length; i++) {
+              if (items[i].type.indexOf("image") !== -1) {
+                hasImage = true;
+                const file = items[i].getAsFile();
+                if (file) {
+                  // Let the user know it's uploading
+                  const tempId = `temp-${Date.now()}`;
+                  document.execCommand(
+                    "insertHTML",
+                    false,
+                    `<div id="${tempId}" class="text-emerald-500 text-sm animate-pulse">Uploading image...</div>`,
+                  );
+                  
+                  uploadImage(file, "inlines")
+                    .then((url) => {
+                      const imgHtml = `<img src="${url}" alt="Pasted Image" />`;
+                      // Replace the temp div with the actual image
+                      if (editorRef.current) {
+                        editorRef.current.innerHTML = editorRef.current.innerHTML.replace(
+                          new RegExp(`<div id="${tempId}".*?</div>`),
+                          imgHtml,
+                        );
+                        syncContent();
+                      }
+                    })
+                    .catch((err) => {
+                      console.error("Paste image upload error:", err);
+                      if (editorRef.current) {
+                        editorRef.current.innerHTML = editorRef.current.innerHTML.replace(
+                          new RegExp(`<div id="${tempId}".*?</div>`),
+                          `<div class="text-red-500 text-sm">Failed to upload image.</div>`,
+                        );
+                      }
+                    });
+                }
+              }
+            }
+          }
+
+          // If no image file was pasted, handle normal HTML/Text paste
+          if (!hasImage) {
+            let pastedData = e.clipboardData?.getData("text/html");
+            if (!pastedData) {
+              // Fallback to plain text if no HTML
+              pastedData = e.clipboardData?.getData("text/plain") || "";
+              // Escape basic HTML so text is safe
+              pastedData = pastedData
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+            }
+
+            // Cleanup unwanted spacing tokens including literal &nbsp;
+            let cleanedHTML = pastedData
+              .replace(/&nbsp;/g, " ")
+              .replace(/<span[^>]*>(.*?)<\/span>/gi, "$1") // Strip spans to prevent inline styling carry-over
+              .replace(/class="[^"]*"/g, ""); // Strip foreign classes
+
+            // Insert the cleaned HTML
+            document.execCommand("insertHTML", false, cleanedHTML);
+
+            // Double check cleanup on the actual DOM
+            if (
+              editorRef.current &&
+              editorRef.current.innerHTML.includes("&nbsp;")
+            ) {
+              editorRef.current.innerHTML = editorRef.current.innerHTML.replace(
+                /&nbsp;/g,
+                " ",
+              );
+            }
+            syncContent();
+          }
+        }}
         data-placeholder="Write something amazing..."
         className="min-h-[300px] p-6 focus:outline-none text-emerald-900 leading-relaxed rte-editor"
       />
@@ -623,7 +742,10 @@ export default function Dashboard() {
     type: "success",
   });
 
-  const showToast = (message: string, type: "success" | "error" = "success") => {
+  const showToast = (
+    message: string,
+    type: "success" | "error" = "success",
+  ) => {
     setToast({ show: true, message, type });
     setTimeout(() => {
       setToast((prev) => ({ ...prev, show: false }));
@@ -763,6 +885,50 @@ export default function Dashboard() {
       type: "danger",
       onConfirm: async () => {
         try {
+          const blogToDelete = blogs.find((b) => b.id === id);
+          if (blogToDelete) {
+            // Collect all storage paths to delete
+            const pathsToDelete: string[] = [];
+
+            // 1. Cover image
+            if (blogToDelete.cover_image) {
+              const coverPath = getFilePathFromUrl(
+                blogToDelete.cover_image,
+                "images",
+              );
+              if (coverPath) pathsToDelete.push(coverPath);
+            }
+
+            // 2. Inline images embedded in content HTML
+            if (blogToDelete.content) {
+              const parser = new DOMParser();
+              const doc = parser.parseFromString(
+                blogToDelete.content,
+                "text/html",
+              );
+              const imgs = doc.querySelectorAll("img");
+              imgs.forEach((img) => {
+                const src = img.getAttribute("src");
+                if (src) {
+                  const inlinePath = getFilePathFromUrl(src, "images");
+                  if (inlinePath) pathsToDelete.push(inlinePath);
+                }
+              });
+            }
+
+            // Delete all collected images in one call
+            if (pathsToDelete.length > 0) {
+              const { error: storageError } = await supabase.storage
+                .from("images")
+                .remove(pathsToDelete);
+              if (storageError) {
+                console.warn(
+                  "Could not delete some images from storage:",
+                  storageError.message,
+                );
+              }
+            }
+          }
           await deleteBlog(id);
           fetchData();
           showToast("Blog post deleted successfully");
@@ -1605,17 +1771,56 @@ export default function Dashboard() {
 
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-emerald-900 ml-1">
-                    Cover Image URL
+                    Cover Image
                   </label>
-                  <input
-                    type="url"
-                    value={blogForm.cover_image || ""}
-                    onChange={(e) =>
-                      setBlogForm({ ...blogForm, cover_image: e.target.value })
-                    }
-                    className="w-full bg-emerald-50/30 border border-emerald-100 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-emerald-900 placeholder-emerald-300 transition-all font-medium"
-                    placeholder="https://..."
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={blogForm.cover_image || ""}
+                      onChange={(e) =>
+                        setBlogForm({
+                          ...blogForm,
+                          cover_image: e.target.value,
+                        })
+                      }
+                      className="flex-1 min-w-0 bg-emerald-50/30 border border-emerald-100 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-emerald-900 placeholder-emerald-300 transition-all font-medium"
+                      placeholder="https://... or click Upload"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const input = document.createElement("input");
+                        input.type = "file";
+                        input.accept = "image/*";
+                        input.style.display = "none";
+                        document.body.appendChild(input);
+
+                        input.onchange = async (e) => {
+                          document.body.removeChild(input);
+                          const file = (e.target as HTMLInputElement)
+                            .files?.[0];
+                          if (!file) return;
+                          try {
+                            const url = await uploadImage(file, "covers");
+                            setBlogForm((prev) => ({
+                              ...prev,
+                              cover_image: url,
+                            }));
+                          } catch (err: any) {
+                            console.error(err);
+                            alert(
+                              "Upload cover failed: " +
+                                (err.message || "Unknown error"),
+                            );
+                          }
+                        };
+                        input.click();
+                      }}
+                      className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-xl hover:bg-emerald-200 font-semibold shadow-sm shrink-0 transition-colors"
+                    >
+                      Upload
+                    </button>
+                  </div>
                 </div>
               </div>
 
