@@ -145,6 +145,20 @@ export const updateBlog = async (
   return data;
 };
 
+// Trong file api.ts
+export const getFilePathFromUrl = (
+  url: string,
+  bucketName: string = "images",
+) => {
+  try {
+    const searchPart = `/public/${bucketName}/`;
+    const parts = url.split(searchPart);
+    return parts.length > 1 ? parts[1] : null;
+  } catch (error) {
+    return null;
+  }
+};
+
 export const deleteBlog = async (id: string): Promise<void> => {
   const { error } = await supabase.from("blogs").delete().eq("id", id);
 
